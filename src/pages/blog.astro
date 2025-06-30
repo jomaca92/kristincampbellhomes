@@ -1,71 +1,31 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
 
-// Placeholder blog data - this would come from content collections in the future
-const blogPosts = [
-	{
-		id: 1,
-		title: "First-Time Homebuyer Guide: Everything You Need to Know",
-		excerpt: "Buying your first home can be overwhelming. This comprehensive guide covers everything from saving for a down payment to closing day.",
-		author: "Kristin Campbell",
-		date: "2024-01-15",
-		category: "Buying",
-		readTime: "8 min read",
-		image: "/blog-first-time-buyer.jpg"
-	},
-	{
-		id: 2,
-		title: "2024 Market Trends: What to Expect in Local Real Estate",
-		excerpt: "Stay ahead of the curve with our analysis of the latest market trends and predictions for the local real estate market this year.",
-		author: "Kristin Campbell",
-		date: "2024-01-10",
-		category: "Market Analysis",
-		readTime: "6 min read",
-		image: "/blog-market-trends.jpg"
-	},
-	{
-		id: 3,
-		title: "Selling Your Home: 5 Proven Strategies to Maximize Value",
-		excerpt: "Learn the top strategies successful sellers use to get the best price for their home in today's competitive market.",
-		author: "Kristin Campbell",
-		date: "2024-01-05",
-		category: "Selling",
-		readTime: "10 min read",
-		image: "/blog-selling-strategies.jpg"
-	},
-	{
-		id: 4,
-		title: "Investment Properties: Building Wealth Through Real Estate",
-		excerpt: "Discover how real estate investment can be a powerful wealth-building tool and learn the fundamentals of property investing.",
-		author: "Kristin Campbell",
-		date: "2023-12-28",
-		category: "Investing",
-		readTime: "12 min read",
-		image: "/blog-investment.jpg"
-	},
-	{
-		id: 5,
-		title: "Neighborhood Spotlight: Downtown Living at Its Best",
-		excerpt: "Explore the vibrant downtown area and discover why it's becoming one of the most sought-after neighborhoods for young professionals.",
-		author: "Kristin Campbell",
-		date: "2023-12-20",
-		category: "Neighborhoods",
-		readTime: "5 min read",
-		image: "/blog-downtown.jpg"
-	},
-	{
-		id: 6,
-		title: "Home Maintenance Checklist: Seasonal Tasks Every Homeowner Should Know",
-		excerpt: "Keep your home in top condition with our comprehensive seasonal maintenance checklist that will save you money in the long run.",
-		author: "Kristin Campbell",
-		date: "2023-12-15",
-		category: "Home Care",
-		readTime: "7 min read",
-		image: "/blog-maintenance.jpg"
-	}
-];
+// Get all blog posts, sorted by publication date
+const allPosts = await getCollection('blog');
+const posts = allPosts
+	.filter((post: CollectionEntry<'blog'>) => !post.data.draft)
+	.sort((a: CollectionEntry<'blog'>, b: CollectionEntry<'blog'>) => 
+		new Date(b.data.pubDate).getTime() - new Date(a.data.pubDate).getTime()
+	);
 
-const categories = ["All", "Buying", "Selling", "Market Analysis", "Investing", "Neighborhoods", "Home Care"];
+// Get featured post (first one marked as featured, or first post)
+const featuredPost = posts.find((post: CollectionEntry<'blog'>) => post.data.featured) || posts[0];
+const otherPosts = posts.filter((post: CollectionEntry<'blog'>) => post.id !== featuredPost.id).slice(0, 5);
+
+// Get unique categories
+const categories = ['All', ...new Set(posts.map((post: CollectionEntry<'blog'>) => post.data.category))];
+
+// Format date helper
+function formatDate(date: Date) {
+	return new Intl.DateTimeFormat('en-US', {
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric'
+	}).format(date);
+}
 ---
 
 <Layout 
@@ -102,106 +62,122 @@ const categories = ["All", "Buying", "Selling", "Market Analysis", "Investing", 
 	</section>
 
 	<!-- Featured Post -->
-	<section class="py-16 bg-white">
-		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-			<div class="bg-gray-50 rounded-lg p-8 mb-16">
-				<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-					<div>
-						<span class="bg-blue-100 text-blue-800 text-xs font-medium px-3 py-1 rounded-full mb-4 inline-block">
-							Featured Post
-						</span>
-						<h2 class="text-3xl font-bold text-gray-900 mb-4">
-							{blogPosts[0].title}
-						</h2>
-						<p class="text-lg text-gray-600 mb-6">
-							{blogPosts[0].excerpt}
-						</p>
-						<div class="flex items-center text-sm text-gray-500 mb-6">
-							<span>By {blogPosts[0].author}</span>
-							<span class="mx-2">•</span>
-							<span>{new Date(blogPosts[0].date).toLocaleDateString()}</span>
-							<span class="mx-2">•</span>
-							<span>{blogPosts[0].readTime}</span>
+	{featuredPost && (
+		<section class="py-16 bg-white">
+			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+				<div class="bg-gray-50 rounded-lg p-8 mb-16">
+					<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+						<div>
+							<span class="bg-blue-100 text-blue-800 text-xs font-medium px-3 py-1 rounded-full mb-4 inline-block">
+								Featured Post
+							</span>
+							<h2 class="text-3xl font-bold text-gray-900 mb-4">
+								{featuredPost.data.title}
+							</h2>
+							<p class="text-lg text-gray-600 mb-6">
+								{featuredPost.data.description}
+							</p>
+							<div class="flex items-center text-sm text-gray-500 mb-6">
+								<span>By {featuredPost.data.author}</span>
+								<span class="mx-2">•</span>
+								<span>{formatDate(featuredPost.data.pubDate)}</span>
+								{featuredPost.data.readTime && (
+									<>
+										<span class="mx-2">•</span>
+										<span>{featuredPost.data.readTime}</span>
+									</>
+								)}
+							</div>
+							<a 
+								href={`/blog/${featuredPost.id}`}
+								class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+							>
+								Read Full Article
+							</a>
 						</div>
-						<a 
-							href={`/blog/${blogPosts[0].id}`}
-							class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-						>
-							Read Full Article
-						</a>
-					</div>
-					<div class="bg-gray-200 h-64 rounded-lg flex items-center justify-center">
-						<div class="text-center text-gray-500">
-							<svg class="w-16 h-16 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
-								<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-							</svg>
-							<p class="text-sm">Featured Image</p>
+						<div class="bg-gray-200 h-64 rounded-lg flex items-center justify-center">
+							<div class="text-center text-gray-500">
+								<svg class="w-16 h-16 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+									<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+								</svg>
+								<p class="text-sm">Featured Image</p>
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-		</div>
-	</section>
+		</section>
+	)}
 
 	<!-- Blog Posts Grid -->
 	<section class="py-16 bg-gray-50">
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<h2 class="text-2xl font-bold text-gray-900 mb-8">Latest Articles</h2>
 			
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-				{blogPosts.slice(1).map((post) => (
-					<article class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-						<!-- Blog Image -->
-						<div class="bg-gray-200 h-48 flex items-center justify-center">
-							<div class="text-center text-gray-500">
-								<svg class="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
-									<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-								</svg>
-								<p class="text-xs">Blog Image</p>
-							</div>
-						</div>
-
-						<!-- Blog Content -->
-						<div class="p-6">
-							<div class="flex items-center justify-between mb-3">
-								<span class="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-1 rounded">
-									{post.category}
-								</span>
-								<span class="text-xs text-gray-500">{post.readTime}</span>
-							</div>
-							
-							<h3 class="text-lg font-semibold text-gray-900 mb-3 line-clamp-2">
-								{post.title}
-							</h3>
-							
-							<p class="text-gray-600 text-sm mb-4 line-clamp-3">
-								{post.excerpt}
-							</p>
-							
-							<div class="flex items-center justify-between">
-								<div class="text-xs text-gray-500">
-									<span>By {post.author}</span>
-									<span class="mx-1">•</span>
-									<span>{new Date(post.date).toLocaleDateString()}</span>
+			{otherPosts.length > 0 ? (
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+					{otherPosts.map((post: CollectionEntry<'blog'>) => (
+						<article class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+							<!-- Blog Image -->
+							<div class="bg-gray-200 h-48 flex items-center justify-center">
+								<div class="text-center text-gray-500">
+									<svg class="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+										<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+									</svg>
+									<p class="text-xs">Blog Image</p>
 								</div>
-								<a 
-									href={`/blog/${post.id}`}
-									class="text-blue-600 hover:text-blue-800 text-sm font-medium"
-								>
-									Read More →
-								</a>
 							</div>
-						</div>
-					</article>
-				))}
-			</div>
 
-			<!-- Load More Button -->
-			<div class="text-center mt-12">
-				<button class="bg-white text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors border border-gray-300">
-					Load More Articles
-				</button>
-			</div>
+							<!-- Blog Content -->
+							<div class="p-6">
+								<div class="flex items-center justify-between mb-3">
+									<span class="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-1 rounded">
+										{post.data.category}
+									</span>
+									{post.data.readTime && (
+										<span class="text-xs text-gray-500">{post.data.readTime}</span>
+									)}
+								</div>
+								
+								<h3 class="text-lg font-semibold text-gray-900 mb-3 line-clamp-2">
+									{post.data.title}
+								</h3>
+								
+								<p class="text-gray-600 text-sm mb-4 line-clamp-3">
+									{post.data.description}
+								</p>
+								
+								<div class="flex items-center justify-between">
+									<div class="text-xs text-gray-500">
+										<span>By {post.data.author}</span>
+										<span class="mx-1">•</span>
+										<span>{formatDate(post.data.pubDate)}</span>
+									</div>
+									<a 
+										href={`/blog/${post.id}`}
+										class="text-blue-600 hover:text-blue-800 text-sm font-medium"
+									>
+										Read More →
+									</a>
+								</div>
+							</div>
+						</article>
+					))}
+				</div>
+			) : (
+				<div class="text-center py-12">
+					<p class="text-gray-600">No additional articles available at this time.</p>
+				</div>
+			)}
+
+			{otherPosts.length > 5 && (
+				<!-- Load More Button -->
+				<div class="text-center mt-12">
+					<button class="bg-white text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors border border-gray-300">
+						Load More Articles
+					</button>
+				</div>
+			)}
 		</div>
 	</section>
 

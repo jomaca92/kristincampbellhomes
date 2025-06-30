@@ -1,81 +1,28 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
 
-// Placeholder property data - this would come from content collections in the future
-const properties = [
-	{
-		id: 1,
-		title: "Beautiful Family Home in Downtown",
-		price: "$450,000",
-		address: "123 Oak Street, Local City, ST",
-		bedrooms: 4,
-		bathrooms: 3,
-		sqft: "2,400",
-		type: "Single Family",
-		status: "For Sale",
-		image: "/placeholder-house-1.jpg"
-	},
-	{
-		id: 2,
-		title: "Modern Condo with City Views",
-		price: "$275,000",
-		address: "456 Pine Avenue, Local City, ST",
-		bedrooms: 2,
-		bathrooms: 2,
-		sqft: "1,200",
-		type: "Condo",
-		status: "For Sale",
-		image: "/placeholder-house-2.jpg"
-	},
-	{
-		id: 3,
-		title: "Charming Starter Home",
-		price: "$325,000",
-		address: "789 Maple Drive, Local City, ST",
-		bedrooms: 3,
-		bathrooms: 2,
-		sqft: "1,800",
-		type: "Single Family",
-		status: "For Sale",
-		image: "/placeholder-house-3.jpg"
-	},
-	{
-		id: 4,
-		title: "Luxury Townhouse",
-		price: "$550,000",
-		address: "321 Elm Court, Local City, ST",
-		bedrooms: 4,
-		bathrooms: 3.5,
-		sqft: "2,800",
-		type: "Townhouse",
-		status: "For Sale",
-		image: "/placeholder-house-4.jpg"
-	},
-	{
-		id: 5,
-		title: "Investment Property - Multi-Family",
-		price: "$750,000",
-		address: "654 Cedar Lane, Local City, ST",
-		bedrooms: 8,
-		bathrooms: 4,
-		sqft: "4,200",
-		type: "Multi-Family",
-		status: "For Sale",
-		image: "/placeholder-house-5.jpg"
-	},
-	{
-		id: 6,
-		title: "Waterfront Cottage",
-		price: "$425,000",
-		address: "987 Lake View Road, Local City, ST",
-		bedrooms: 3,
-		bathrooms: 2,
-		sqft: "1,600",
-		type: "Single Family",
-		status: "For Sale",
-		image: "/placeholder-house-6.jpg"
-	}
-];
+// Get all properties, sorted by date listed
+const allProperties = await getCollection('properties');
+const properties = allProperties
+	.filter((property: CollectionEntry<'properties'>) => property.data.status === 'For Sale')
+	.sort((a: CollectionEntry<'properties'>, b: CollectionEntry<'properties'>) => 
+		new Date(b.data.dateListed).getTime() - new Date(a.data.dateListed).getTime()
+	);
+
+// Get unique property types for filter
+const propertyTypes: string[] = ['All Types', ...Array.from(new Set(properties.map((property: CollectionEntry<'properties'>) => property.data.propertyType)))];
+
+// Format price helper
+function formatPrice(price: number) {
+	return new Intl.NumberFormat('en-US', {
+		style: 'currency',
+		currency: 'USD',
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 0,
+	}).format(price);
+}
 ---
 
 <Layout 
@@ -114,11 +61,9 @@ const properties = [
 							id="type"
 							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 						>
-							<option value="">All Types</option>
-							<option value="single-family">Single Family</option>
-							<option value="condo">Condo</option>
-							<option value="townhouse">Townhouse</option>
-							<option value="multi-family">Multi-Family</option>
+							{propertyTypes.map((type) => (
+								<option value={type === 'All Types' ? '' : type.toString()}>{type}</option>
+							))}
 						</select>
 					</div>
 					<div>
@@ -165,64 +110,73 @@ const properties = [
 				<p class="text-gray-600">{properties.length} properties found</p>
 			</div>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-				{properties.map((property) => (
-					<div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-						<!-- Property Image -->
-						<div class="bg-gray-200 h-48 flex items-center justify-center">
-							<div class="text-center text-gray-500">
-								<svg class="w-16 h-16 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
-									<path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v10z"/>
-								</svg>
-								<p class="text-sm">Property Image</p>
+			{properties.length > 0 ? (
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+					{properties.map((property: CollectionEntry<'properties'>) => (
+						<div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+							<!-- Property Image -->
+							<div class="bg-gray-200 h-48 flex items-center justify-center">
+								<div class="text-center text-gray-500">
+									<svg class="w-16 h-16 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+										<path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v10z"/>
+									</svg>
+									<p class="text-sm">Property Image</p>
+								</div>
+							</div>
+
+							<!-- Property Details -->
+							<div class="p-6">
+								<div class="flex justify-between items-start mb-2">
+									<h3 class="text-lg font-semibold text-gray-900">{property.data.title}</h3>
+									<span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
+										{property.data.status}
+									</span>
+								</div>
+								
+								<p class="text-gray-600 text-sm mb-3">{property.data.address}, {property.data.city}, {property.data.state} {property.data.zipCode}</p>
+								
+								<div class="text-2xl font-bold text-blue-600 mb-4">{formatPrice(property.data.price)}</div>
+								
+								<div class="grid grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
+									<div>
+										<span class="font-medium">{property.data.bedrooms}</span> beds
+									</div>
+									<div>
+										<span class="font-medium">{property.data.bathrooms}</span> baths
+									</div>
+									<div>
+										<span class="font-medium">{property.data.squareFeet.toLocaleString()}</span> sqft
+									</div>
+								</div>
+								
+								<div class="flex justify-between items-center">
+									<span class="text-sm text-gray-500">{property.data.propertyType}</span>
+									<a 
+										href={`/properties/${property.id}`}
+										class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+									>
+										View Details
+									</a>
+								</div>
 							</div>
 						</div>
+					))}
+				</div>
+			) : (
+				<div class="text-center py-12">
+					<p class="text-gray-600">No properties available at this time.</p>
+					<p class="text-gray-500 mt-2">Check back soon for new listings!</p>
+				</div>
+			)}
 
-						<!-- Property Details -->
-						<div class="p-6">
-							<div class="flex justify-between items-start mb-2">
-								<h3 class="text-lg font-semibold text-gray-900">{property.title}</h3>
-								<span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
-									{property.status}
-								</span>
-							</div>
-							
-							<p class="text-gray-600 text-sm mb-3">{property.address}</p>
-							
-							<div class="text-2xl font-bold text-blue-600 mb-4">{property.price}</div>
-							
-							<div class="grid grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
-								<div>
-									<span class="font-medium">{property.bedrooms}</span> beds
-								</div>
-								<div>
-									<span class="font-medium">{property.bathrooms}</span> baths
-								</div>
-								<div>
-									<span class="font-medium">{property.sqft}</span> sqft
-								</div>
-							</div>
-							
-							<div class="flex justify-between items-center">
-								<span class="text-sm text-gray-500">{property.type}</span>
-								<a 
-									href={`/properties/${property.id}`}
-									class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
-								>
-									View Details
-								</a>
-							</div>
-						</div>
-					</div>
-				))}
-			</div>
-
-			<!-- Load More Button -->
-			<div class="text-center mt-12">
-				<button class="bg-gray-100 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
-					Load More Properties
-				</button>
-			</div>
+			{properties.length > 6 && (
+				<!-- Load More Button -->
+				<div class="text-center mt-12">
+					<button class="bg-gray-100 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+						Load More Properties
+					</button>
+				</div>
+			)}
 		</div>
 	</section>
 

@@ -1,0 +1,378 @@
+---
+import { getCollection, type CollectionEntry, render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+// Generate static paths for all properties
+export async function getStaticPaths() {
+	const properties = await getCollection('properties');
+	return properties.map((property) => ({
+		params: { slug: property.id },
+		props: { property },
+	}));
+}
+
+// Get the property data
+const { property } = Astro.props;
+const { Content } = await render(property);
+
+// Format price helper
+function formatPrice(price: number) {
+	return new Intl.NumberFormat('en-US', {
+		style: 'currency',
+		currency: 'USD',
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 0,
+	}).format(price);
+}
+
+// Get similar properties (same type, excluding current property)
+const allProperties = await getCollection('properties');
+const similarProperties = allProperties
+	.filter((p: CollectionEntry<'properties'>) => 
+		p.slug !== property.slug && 
+		p.data.propertyType === property.data.propertyType && 
+		p.data.status === 'For Sale'
+	)
+	.slice(0, 3);
+---
+
+<Layout 
+	title={property.data.title}
+	description={property.data.description}
+>
+	<!-- Hero Section -->
+	<section class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="text-center">
+				<span class="bg-blue-500 text-white text-sm font-medium px-3 py-1 rounded-full mb-4 inline-block">
+					{property.data.status}
+				</span>
+				<h1 class="text-4xl md:text-5xl font-bold mb-6">{property.data.title}</h1>
+				<p class="text-xl text-blue-100 mb-4">
+					{property.data.address}, {property.data.city}, {property.data.state} {property.data.zipCode}
+				</p>
+				<div class="text-3xl font-bold">{formatPrice(property.data.price)}</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Property Details -->
+	<section class="py-16 bg-white">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+				<!-- Main Content -->
+				<div class="lg:col-span-2">
+					<!-- Property Images -->
+					<div class="bg-gray-200 h-96 rounded-lg mb-8 flex items-center justify-center">
+						<div class="text-center text-gray-500">
+							<svg class="w-24 h-24 mx-auto mb-4" fill="currentColor" viewBox="0 0 24 24">
+								<path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v10z"/>
+							</svg>
+							<p class="text-lg">Property Images</p>
+							<p class="text-sm">Professional photography coming soon</p>
+						</div>
+					</div>
+
+					<!-- Property Content -->
+					<article class="prose prose-lg max-w-none">
+						<Content />
+					</article>
+
+					<!-- Features -->
+					{property.data.features.length > 0 && (
+						<div class="mt-12 pt-8 border-t border-gray-200">
+							<h3 class="text-2xl font-bold text-gray-900 mb-6">Property Features</h3>
+							<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+								{property.data.features.map((feature: string) => (
+									<div class="flex items-center space-x-3">
+										<svg class="w-5 h-5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+											<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+										</svg>
+										<span class="text-gray-700">{feature}</span>
+									</div>
+								))}
+							</div>
+						</div>
+					)}
+				</div>
+
+				<!-- Sidebar -->
+				<div class="lg:col-span-1">
+					<!-- Quick Info Card -->
+					<div class="bg-gray-50 rounded-lg p-6 mb-8">
+						<h3 class="text-xl font-bold text-gray-900 mb-4">Property Details</h3>
+						<div class="space-y-3">
+							<div class="flex justify-between">
+								<span class="text-gray-600">Price:</span>
+								<span class="font-semibold text-gray-900">{formatPrice(property.data.price)}</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-gray-600">Bedrooms:</span>
+								<span class="font-semibold text-gray-900">{property.data.bedrooms}</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-gray-600">Bathrooms:</span>
+								<span class="font-semibold text-gray-900">{property.data.bathrooms}</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-gray-600">Square Feet:</span>
+								<span class="font-semibold text-gray-900">{property.data.squareFeet.toLocaleString()}</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-gray-600">Property Type:</span>
+								<span class="font-semibold text-gray-900">{property.data.propertyType}</span>
+							</div>
+							{property.data.yearBuilt && (
+								<div class="flex justify-between">
+									<span class="text-gray-600">Year Built:</span>
+									<span class="font-semibold text-gray-900">{property.data.yearBuilt}</span>
+								</div>
+							)}
+							{property.data.lotSize && (
+								<div class="flex justify-between">
+									<span class="text-gray-600">Lot Size:</span>
+									<span class="font-semibold text-gray-900">{property.data.lotSize}</span>
+								</div>
+							)}
+							{property.data.mlsNumber && (
+								<div class="flex justify-between">
+									<span class="text-gray-600">MLS #:</span>
+									<span class="font-semibold text-gray-900">{property.data.mlsNumber}</span>
+								</div>
+							)}
+						</div>
+					</div>
+
+					<!-- Contact Form -->
+					<div class="bg-white border border-gray-200 rounded-lg p-6">
+						<h3 class="text-xl font-bold text-gray-900 mb-4">Interested in this property?</h3>
+						<p class="text-gray-600 mb-6">Get in touch to schedule a showing or ask questions.</p>
+						
+						<form name="property-inquiry" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="space-y-4">
+							<input type="hidden" name="form-name" value="property-inquiry" />
+							<input type="hidden" name="property" value={property.data.title} />
+							<p class="hidden">
+								<label>
+									Don't fill this out if you're human: <input name="bot-field" />
+								</label>
+							</p>
+
+							<div>
+								<label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+									Name *
+								</label>
+								<input
+									type="text"
+									id="name"
+									name="name"
+									required
+									class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+								/>
+							</div>
+
+							<div>
+								<label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+									Email *
+								</label>
+								<input
+									type="email"
+									id="email"
+									name="email"
+									required
+									class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+								/>
+							</div>
+
+							<div>
+								<label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
+									Phone
+								</label>
+								<input
+									type="tel"
+									id="phone"
+									name="phone"
+									class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+								/>
+							</div>
+
+							<div>
+								<label for="message" class="block text-sm font-medium text-gray-700 mb-1">
+									Message
+								</label>
+								<textarea
+									id="message"
+									name="message"
+									rows="4"
+									placeholder="I'm interested in this property..."
+									class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+								></textarea>
+							</div>
+
+							<button
+								type="submit"
+								class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+							>
+								Send Inquiry
+							</button>
+						</form>
+					</div>
+
+					<!-- Agent Info -->
+					<div class="mt-8 bg-blue-50 rounded-lg p-6">
+						<div class="flex items-center space-x-4 mb-4">
+							<div class="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center">
+								<svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+									<path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+								</svg>
+							</div>
+							<div>
+								<h4 class="font-semibold text-gray-900">Kristin Campbell</h4>
+								<p class="text-sm text-gray-600">Your Real Estate Agent</p>
+							</div>
+						</div>
+						<div class="space-y-2 text-sm">
+							<div class="flex items-center space-x-2">
+								<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+								</svg>
+								<span class="text-gray-600">(555) 123-4567</span>
+							</div>
+							<div class="flex items-center space-x-2">
+								<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+								</svg>
+								<span class="text-gray-600">kristin@kristincampbellhomes.com</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Similar Properties -->
+	{similarProperties.length > 0 && (
+		<section class="py-16 bg-gray-50">
+			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+				<h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Similar Properties</h2>
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+					{similarProperties.map((similarProperty: CollectionEntry<'properties'>) => (
+						<div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+							<div class="bg-gray-200 h-48 flex items-center justify-center">
+								<div class="text-center text-gray-500">
+									<svg class="w-16 h-16 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+										<path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v10z"/>
+									</svg>
+									<p class="text-sm">Property Image</p>
+								</div>
+							</div>
+							<div class="p-6">
+								<div class="flex justify-between items-start mb-2">
+									<h3 class="text-lg font-semibold text-gray-900">{similarProperty.data.title}</h3>
+									<span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
+										{similarProperty.data.status}
+									</span>
+								</div>
+								<p class="text-gray-600 text-sm mb-3">{similarProperty.data.address}, {similarProperty.data.city}</p>
+								<div class="text-xl font-bold text-blue-600 mb-4">{formatPrice(similarProperty.data.price)}</div>
+								<div class="grid grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
+									<div>
+										<span class="font-medium">{similarProperty.data.bedrooms}</span> beds
+									</div>
+									<div>
+										<span class="font-medium">{similarProperty.data.bathrooms}</span> baths
+									</div>
+									<div>
+										<span class="font-medium">{similarProperty.data.squareFeet.toLocaleString()}</span> sqft
+									</div>
+								</div>
+								<a 
+									href={`/properties/${similarProperty.slug}`}
+									class="block w-full bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors text-center"
+								>
+									View Details
+								</a>
+							</div>
+						</div>
+					))}
+				</div>
+			</div>
+		</section>
+	)}
+
+	<!-- CTA Section -->
+	<section class="py-16 bg-blue-600 text-white">
+		<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+			<h2 class="text-3xl font-bold mb-4">Ready to Make This Your Home?</h2>
+			<p class="text-xl text-blue-100 mb-8">
+				Contact me today to schedule a private showing or discuss your offer.
+			</p>
+			<div class="flex flex-col sm:flex-row gap-4 justify-center">
+				<a href="/contact" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+					Contact Me
+				</a>
+				<a href="/properties" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors">
+					View All Properties
+				</a>
+			</div>
+		</div>
+	</section>
+</Layout>
+
+<style>
+	.prose {
+		color: #374151;
+	}
+	
+	.prose h1 {
+		color: #111827;
+		font-size: 2.25rem;
+		font-weight: 700;
+		margin-top: 0;
+		margin-bottom: 1.5rem;
+	}
+	
+	.prose h2 {
+		color: #111827;
+		font-size: 1.875rem;
+		font-weight: 600;
+		margin-top: 2rem;
+		margin-bottom: 1rem;
+	}
+	
+	.prose h3 {
+		color: #111827;
+		font-size: 1.5rem;
+		font-weight: 600;
+		margin-top: 1.5rem;
+		margin-bottom: 0.75rem;
+	}
+	
+	.prose p {
+		margin-bottom: 1.25rem;
+		line-height: 1.75;
+	}
+	
+	.prose ul {
+		margin-bottom: 1.25rem;
+		padding-left: 1.5rem;
+	}
+	
+	.prose li {
+		margin-bottom: 0.5rem;
+	}
+	
+	.prose strong {
+		font-weight: 600;
+		color: #111827;
+	}
+	
+	.prose a {
+		color: #2563eb;
+		text-decoration: underline;
+	}
+	
+	.prose a:hover {
+		color: #1d4ed8;
+	}
+</style> 
