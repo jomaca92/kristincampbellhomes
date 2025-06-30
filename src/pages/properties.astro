@@ -1,0 +1,246 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+// Placeholder property data - this would come from content collections in the future
+const properties = [
+	{
+		id: 1,
+		title: "Beautiful Family Home in Downtown",
+		price: "$450,000",
+		address: "123 Oak Street, Local City, ST",
+		bedrooms: 4,
+		bathrooms: 3,
+		sqft: "2,400",
+		type: "Single Family",
+		status: "For Sale",
+		image: "/placeholder-house-1.jpg"
+	},
+	{
+		id: 2,
+		title: "Modern Condo with City Views",
+		price: "$275,000",
+		address: "456 Pine Avenue, Local City, ST",
+		bedrooms: 2,
+		bathrooms: 2,
+		sqft: "1,200",
+		type: "Condo",
+		status: "For Sale",
+		image: "/placeholder-house-2.jpg"
+	},
+	{
+		id: 3,
+		title: "Charming Starter Home",
+		price: "$325,000",
+		address: "789 Maple Drive, Local City, ST",
+		bedrooms: 3,
+		bathrooms: 2,
+		sqft: "1,800",
+		type: "Single Family",
+		status: "For Sale",
+		image: "/placeholder-house-3.jpg"
+	},
+	{
+		id: 4,
+		title: "Luxury Townhouse",
+		price: "$550,000",
+		address: "321 Elm Court, Local City, ST",
+		bedrooms: 4,
+		bathrooms: 3.5,
+		sqft: "2,800",
+		type: "Townhouse",
+		status: "For Sale",
+		image: "/placeholder-house-4.jpg"
+	},
+	{
+		id: 5,
+		title: "Investment Property - Multi-Family",
+		price: "$750,000",
+		address: "654 Cedar Lane, Local City, ST",
+		bedrooms: 8,
+		bathrooms: 4,
+		sqft: "4,200",
+		type: "Multi-Family",
+		status: "For Sale",
+		image: "/placeholder-house-5.jpg"
+	},
+	{
+		id: 6,
+		title: "Waterfront Cottage",
+		price: "$425,000",
+		address: "987 Lake View Road, Local City, ST",
+		bedrooms: 3,
+		bathrooms: 2,
+		sqft: "1,600",
+		type: "Single Family",
+		status: "For Sale",
+		image: "/placeholder-house-6.jpg"
+	}
+];
+---
+
+<Layout 
+	title="Properties - Browse Available Homes | Kristin Campbell Homes"
+	description="Browse our selection of available properties for sale. Find your dream home with Kristin Campbell Homes."
+>
+	<!-- Hero Section -->
+	<section class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="text-center">
+				<h1 class="text-4xl md:text-5xl font-bold mb-6">Available Properties</h1>
+				<p class="text-xl text-blue-100 max-w-3xl mx-auto">
+					Discover your perfect home from our carefully curated selection of properties
+				</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- Search and Filters -->
+	<section class="py-8 bg-gray-50 border-b border-gray-200">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="bg-white p-6 rounded-lg shadow-sm">
+				<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+					<div>
+						<label for="search" class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+						<input
+							type="text"
+							id="search"
+							placeholder="Address, city, or zip code"
+							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+						/>
+					</div>
+					<div>
+						<label for="type" class="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
+						<select
+							id="type"
+							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+						>
+							<option value="">All Types</option>
+							<option value="single-family">Single Family</option>
+							<option value="condo">Condo</option>
+							<option value="townhouse">Townhouse</option>
+							<option value="multi-family">Multi-Family</option>
+						</select>
+					</div>
+					<div>
+						<label for="price" class="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
+						<select
+							id="price"
+							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+						>
+							<option value="">Any Price</option>
+							<option value="0-300000">Under $300,000</option>
+							<option value="300000-500000">$300,000 - $500,000</option>
+							<option value="500000-750000">$500,000 - $750,000</option>
+							<option value="750000+">Over $750,000</option>
+						</select>
+					</div>
+					<div>
+						<label for="bedrooms" class="block text-sm font-medium text-gray-700 mb-2">Bedrooms</label>
+						<select
+							id="bedrooms"
+							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+						>
+							<option value="">Any</option>
+							<option value="1">1+</option>
+							<option value="2">2+</option>
+							<option value="3">3+</option>
+							<option value="4">4+</option>
+						</select>
+					</div>
+				</div>
+				<div class="mt-4 flex justify-center">
+					<button class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+						Search Properties
+					</button>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Properties Grid -->
+	<section class="py-16 bg-white">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="flex justify-between items-center mb-8">
+				<h2 class="text-2xl font-bold text-gray-900">Available Properties</h2>
+				<p class="text-gray-600">{properties.length} properties found</p>
+			</div>
+
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+				{properties.map((property) => (
+					<div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+						<!-- Property Image -->
+						<div class="bg-gray-200 h-48 flex items-center justify-center">
+							<div class="text-center text-gray-500">
+								<svg class="w-16 h-16 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+									<path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v10z"/>
+								</svg>
+								<p class="text-sm">Property Image</p>
+							</div>
+						</div>
+
+						<!-- Property Details -->
+						<div class="p-6">
+							<div class="flex justify-between items-start mb-2">
+								<h3 class="text-lg font-semibold text-gray-900">{property.title}</h3>
+								<span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
+									{property.status}
+								</span>
+							</div>
+							
+							<p class="text-gray-600 text-sm mb-3">{property.address}</p>
+							
+							<div class="text-2xl font-bold text-blue-600 mb-4">{property.price}</div>
+							
+							<div class="grid grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
+								<div>
+									<span class="font-medium">{property.bedrooms}</span> beds
+								</div>
+								<div>
+									<span class="font-medium">{property.bathrooms}</span> baths
+								</div>
+								<div>
+									<span class="font-medium">{property.sqft}</span> sqft
+								</div>
+							</div>
+							
+							<div class="flex justify-between items-center">
+								<span class="text-sm text-gray-500">{property.type}</span>
+								<a 
+									href={`/properties/${property.id}`}
+									class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+								>
+									View Details
+								</a>
+							</div>
+						</div>
+					</div>
+				))}
+			</div>
+
+			<!-- Load More Button -->
+			<div class="text-center mt-12">
+				<button class="bg-gray-100 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+					Load More Properties
+				</button>
+			</div>
+		</div>
+	</section>
+
+	<!-- CTA Section -->
+	<section class="py-16 bg-gray-50">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+			<h2 class="text-3xl font-bold text-gray-900 mb-4">Can't Find What You're Looking For?</h2>
+			<p class="text-lg text-gray-600 mb-8">
+				Let me know your specific requirements and I'll help you find the perfect property
+			</p>
+			<div class="flex flex-col sm:flex-row gap-4 justify-center">
+				<a href="/contact" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+					Contact Me
+				</a>
+				<a href="/properties" class="border-2 border-blue-600 text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition-colors">
+					Set Up Property Alerts
+				</a>
+			</div>
+		</div>
+	</section>
+</Layout> 
